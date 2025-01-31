@@ -1,7 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Github, Twitter, Instagram } from "lucide-react";
+import { useAuth } from "./AuthProvider";
+import { Link, useNavigate } from "react-router-dom";
 
 const Navigation = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass-panel mx-4 mt-4 px-6 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -22,7 +27,15 @@ const Navigation = () => {
               <Github className="w-5 h-5" />
             </a>
           </div>
-          <Button className="neon-button">Login</Button>
+          {user ? (
+            <Button onClick={signOut} className="neon-button">
+              Logout
+            </Button>
+          ) : (
+            <Button onClick={() => navigate("/auth")} className="neon-button">
+              Login
+            </Button>
+          )}
         </div>
       </div>
     </nav>
