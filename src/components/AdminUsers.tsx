@@ -12,6 +12,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import type { Database } from "@/integrations/supabase/types";
+
+type UserRole = Database["public"]["Enums"]["user_role"];
 
 export const AdminUsers = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,7 +33,9 @@ export const AdminUsers = () => {
     }
   });
 
-  const handleRoleUpdate = async (userId: string, newRole: string) => {
+  const handleRoleUpdate = async (userId: string, currentRole: UserRole) => {
+    const newRole: UserRole = currentRole === 'admin' ? 'user' : 'admin';
+    
     const { error } = await supabase
       .from('profiles')
       .update({ role: newRole })
@@ -79,7 +84,7 @@ export const AdminUsers = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleRoleUpdate(user.id, user.role === 'admin' ? 'user' : 'admin')}
+                  onClick={() => handleRoleUpdate(user.id, user.role as UserRole)}
                 >
                   Toggle Admin
                 </Button>
