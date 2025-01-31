@@ -24,12 +24,19 @@ const formSchema = z.object({
   description: z.string().optional(),
   genre_id: z.string().optional(),
   bpm: z.string()
-    .transform((val) => val ? parseInt(val, 10) : undefined)
+    .transform((val) => {
+      if (val === "") return undefined;
+      const num = parseInt(val, 10);
+      return isNaN(num) ? undefined : num;
+    })
     .optional(),
   key: z.string().optional(),
   price: z.string()
-    .transform((val) => Number(val))
-    .refine((val) => !isNaN(val) && val >= 0, "Price must be a positive number"),
+    .transform((val) => {
+      const num = parseFloat(val);
+      return isNaN(num) ? 0 : num;
+    })
+    .refine((val) => val >= 0, "Price must be a positive number"),
   audio_file: z.custom<File>((val) => val instanceof File, "Audio file is required"),
   artwork_file: z.custom<File>((val) => val instanceof File, "Artwork file is required").optional(),
 });
@@ -121,7 +128,11 @@ export function BeatUploadForm({ genres, onSubmit, onCancel }: BeatUploadFormPro
               <FormItem>
                 <FormLabel>BPM</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="Enter BPM" {...field} />
+                  <Input 
+                    type="number" 
+                    placeholder="Enter BPM" 
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -153,6 +164,7 @@ export function BeatUploadForm({ genres, onSubmit, onCancel }: BeatUploadFormPro
                 <Input
                   type="number"
                   step="0.01"
+                  min="0"
                   placeholder="Enter price"
                   {...field}
                 />
