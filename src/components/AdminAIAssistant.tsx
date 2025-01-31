@@ -3,7 +3,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Send, Image, Code, Bug, FileUp, Search } from "lucide-react";
@@ -14,7 +13,7 @@ export const AdminAIAssistant = () => {
   const [messages, setMessages] = useState<Array<{role: string, content: string}>>([
     {
       role: "assistant",
-      content: "Hello! I'm your AI admin assistant. I can help you with various tasks like fixing bugs, generating images, creating new features, and more. How can I assist you today?"
+      content: "Hello! I'm your AI admin assistant powered by Google's Gemini. I can help you with various tasks like fixing bugs, generating images, creating new features, and more. How can I assist you today?"
     }
   ]);
   const [isProcessing, setIsProcessing] = useState(false);

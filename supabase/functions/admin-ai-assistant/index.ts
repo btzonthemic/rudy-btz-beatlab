@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,37 +13,61 @@ serve(async (req) => {
 
   try {
     const { action, messages } = await req.json()
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
 
-    // Initialize OpenAI
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    if (!geminiApiKey) {
+      throw new Error('GEMINI_API_KEY is not set')
+    }
+
+    // Prepare the conversation history for Gemini
+    const formattedMessages = messages.map((msg: any) => ({
+      role: msg.role === 'assistant' ? 'model' : msg.role,
+      parts: [{ text: msg.content }]
+    }))
+
+    // Call Gemini API
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + geminiApiKey, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
+        contents: formattedMessages,
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024,
+        },
+        safetySettings: [
           {
-            role: 'system',
-            content: `You are an AI admin assistant with the capability to help with various tasks including:
-              - Fixing bugs in the codebase
-              - Creating new features and pages
-              - Generating and fine-tuning images
-              - Managing containers and infrastructure
-              - Handling Python code
-              - Searching the web for relevant information
-              - Managing file uploads and processing
-
-              Provide detailed, actionable responses and always maintain a helpful, professional tone.`
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
           },
-          ...(messages || [])
-        ],
-      }),
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ]
+      })
     })
 
-    const data = await openAIResponse.json()
-    const message = data.choices[0].message.content
+    const data = await response.json()
+    console.log('Gemini response:', data)
+
+    if (data.error) {
+      throw new Error(data.error.message || 'Error from Gemini API')
+    }
+
+    const message = data.candidates[0].content.parts[0].text
 
     return new Response(
       JSON.stringify({ message }),
