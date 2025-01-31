@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -216,57 +217,59 @@ const Blog = () => {
       </div>
 
       <Dialog open={!!selectedPost} onOpenChange={() => setSelectedPost(null)}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent animate-fade-in">
-              {selectedPost?.title}
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-3xl h-[80vh]">
+          <ScrollArea className="h-full pr-4">
+            <DialogHeader>
+              <DialogTitle className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent animate-fade-in">
+                {selectedPost?.title}
+              </DialogTitle>
+            </DialogHeader>
 
-          {/* Subscribe Form */}
-          <div className="glass-panel p-6 mb-6 animate-fade-in">
-            <div className="flex items-center gap-2 mb-4">
-              <Mail className="w-5 h-5 text-primary" />
-              <h4 className="font-semibold">Subscribe for More Tips</h4>
+            {/* Subscribe Form */}
+            <div className="glass-panel p-6 mb-6 animate-fade-in">
+              <div className="flex items-center gap-2 mb-4">
+                <Mail className="w-5 h-5 text-primary" />
+                <h4 className="font-semibold">Subscribe for More Tips</h4>
+              </div>
+              <form onSubmit={handleSubscribe} className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1"
+                  required
+                />
+                <Button type="submit" className="neon-button whitespace-nowrap">
+                  Subscribe
+                </Button>
+              </form>
             </div>
-            <form onSubmit={handleSubscribe} className="flex gap-2">
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1"
-                required
-              />
-              <Button type="submit" className="neon-button whitespace-nowrap">
-                Subscribe
-              </Button>
-            </form>
-          </div>
 
-          {/* Blog Content */}
-          <div 
-            className="prose prose-invert max-w-none"
-            dangerouslySetInnerHTML={{ __html: selectedPost?.content || '' }}
-          />
+            {/* Blog Content */}
+            <div 
+              className="prose prose-invert max-w-none"
+              dangerouslySetInnerHTML={{ __html: selectedPost?.content || '' }}
+            />
 
-          {/* Interaction Icons */}
-          <div className="flex gap-4 mt-6 pt-6 border-t border-white/10">
-            <button
-              onClick={handleLike}
-              className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-            >
-              <ThumbsUp className="w-5 h-5" />
-              Like
-            </button>
-            <button
-              onClick={handleComment}
-              className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-            >
-              <MessageSquare className="w-5 h-5" />
-              Comment
-            </button>
-          </div>
+            {/* Interaction Icons */}
+            <div className="flex gap-4 mt-6 pt-6 border-t border-white/10">
+              <button
+                onClick={handleLike}
+                className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+              >
+                <ThumbsUp className="w-5 h-5" />
+                Like
+              </button>
+              <button
+                onClick={handleComment}
+                className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+              >
+                <MessageSquare className="w-5 h-5" />
+                Comment
+              </button>
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>
