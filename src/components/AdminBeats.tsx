@@ -42,11 +42,11 @@ const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   genre_id: z.string().optional(),
-  bpm: z.string().transform(Number).optional(),
+  bpm: z.string().transform((val) => (val ? parseInt(val, 10) : undefined)).optional(),
   key: z.string().optional(),
-  price: z.string().transform(Number).min(0, "Price must be positive"),
-  audio_file: z.instanceof(File).optional(),
-  artwork_file: z.instanceof(File).optional(),
+  price: z.string().transform((val) => parseFloat(val)).refine((val) => val >= 0, "Price must be positive"),
+  audio_file: z.custom<File>((val) => val instanceof File, "Audio file is required"),
+  artwork_file: z.custom<File>((val) => val instanceof File, "Artwork file is required").optional(),
 });
 
 export const AdminBeats = () => {
@@ -132,7 +132,7 @@ export const AdminBeats = () => {
 
       const { error } = await supabase
         .from('beats')
-        .insert({
+        .insert([{
           title: values.title,
           description: values.description,
           genre_id: values.genre_id,
@@ -142,7 +142,7 @@ export const AdminBeats = () => {
           audio_url: audioUrl,
           artwork_url: artworkUrl,
           producer_id: producerData.id,
-        });
+        }]);
 
       if (error) throw error;
     },
