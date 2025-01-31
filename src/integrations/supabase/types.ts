@@ -130,39 +130,44 @@ export type Database = {
           },
         ]
       }
-      api_keys: {
-        Row: {
-          created_at: string | null
-          expires_at: string | null
-          id: string
-          is_active: boolean | null
-          key_value: string
-          last_used_at: string | null
-          name: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          key_value: string
-          last_used_at?: string | null
-          name: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          key_value?: string
-          last_used_at?: string | null
-          name?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
+
+api_keys: {
+  Row: {
+    id: string
+    user_id: string
+    name: string
+    key_value: string
+    created_at: string | null
+    last_used_at: string | null
+    expires_at: string | null
+    is_active: boolean | null
+    service_type: string | null
+  }
+  Insert: {
+    id?: string
+    user_id: string
+    name: string
+    key_value: string
+    created_at?: string | null
+    last_used_at?: string | null
+    expires_at?: string | null
+    is_active?: boolean | null
+    service_type?: string | null
+  }
+  Update: {
+    id?: string
+    user_id?: string
+    name?: string
+    key_value?: string
+    created_at?: string | null
+    last_used_at?: string | null
+    expires_at?: string | null
+    is_active?: boolean | null
+    service_type?: string | null
+  }
+  Relationships: []
+}
+
       beat_analytics: {
         Row: {
           beat_id: string | null
@@ -1734,3 +1739,4 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
