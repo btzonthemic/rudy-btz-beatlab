@@ -23,20 +23,9 @@ const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   genre_id: z.string().optional(),
-  bpm: z.string()
-    .transform((val) => {
-      if (val === "") return undefined;
-      const num = parseInt(val, 10);
-      return isNaN(num) ? undefined : num;
-    })
-    .optional(),
+  bpm: z.coerce.number().optional(),
   key: z.string().optional(),
-  price: z.string()
-    .transform((val) => {
-      const num = parseFloat(val);
-      return isNaN(num) ? 0 : num;
-    })
-    .refine((val) => val >= 0, "Price must be a positive number"),
+  price: z.coerce.number().min(0, "Price must be a positive number"),
   audio_file: z.custom<File>((val) => val instanceof File, "Audio file is required"),
   artwork_file: z.custom<File>((val) => val instanceof File, "Artwork file is required").optional(),
 });
@@ -55,9 +44,9 @@ export function BeatUploadForm({ genres, onSubmit, onCancel }: BeatUploadFormPro
     defaultValues: {
       title: "",
       description: "",
-      bpm: "",
+      bpm: undefined,
       key: "",
-      price: "0",
+      price: 0,
     },
   });
 
@@ -124,16 +113,15 @@ export function BeatUploadForm({ genres, onSubmit, onCancel }: BeatUploadFormPro
           <FormField
             control={form.control}
             name="bpm"
-            render={({ field: { value, onChange, ...field } }) => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>BPM</FormLabel>
                 <FormControl>
                   <Input 
-                    type="number" 
+                    type="number"
                     placeholder="Enter BPM"
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
                     {...field}
+                    onChange={(e) => field.onChange(e.target.valueAsNumber)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -159,7 +147,7 @@ export function BeatUploadForm({ genres, onSubmit, onCancel }: BeatUploadFormPro
         <FormField
           control={form.control}
           name="price"
-          render={({ field: { value, onChange, ...field } }) => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel>Price</FormLabel>
               <FormControl>
@@ -168,9 +156,8 @@ export function BeatUploadForm({ genres, onSubmit, onCancel }: BeatUploadFormPro
                   step="0.01"
                   min="0"
                   placeholder="Enter price"
-                  value={value}
-                  onChange={(e) => onChange(e.target.value)}
                   {...field}
+                  onChange={(e) => field.onChange(e.target.valueAsNumber)}
                 />
               </FormControl>
               <FormMessage />
