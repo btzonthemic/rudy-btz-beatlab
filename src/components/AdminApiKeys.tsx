@@ -11,9 +11,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 export const AdminApiKeys = () => {
   const { toast } = useToast();
+  const [keyName, setKeyName] = useState("");
+  const [serviceType, setServiceType] = useState("custom");
 
   const { data: apiKeys, refetch } = useQuery({
     queryKey: ['api-keys'],
@@ -48,8 +52,9 @@ export const AdminApiKeys = () => {
       .from('api_keys')
       .insert({
         user_id: user.user.id,
-        name: `API Key ${format(new Date(), 'yyyy-MM-dd HH:mm')}`,
+        name: keyName || `${serviceType.toUpperCase()} API Key ${format(new Date(), 'yyyy-MM-dd HH:mm')}`,
         key_value: newKey,
+        service_type: serviceType,
       });
 
     if (insertError) {
@@ -65,6 +70,7 @@ export const AdminApiKeys = () => {
       title: "Success",
       description: "New API key generated.",
     });
+    setKeyName("");
     refetch();
   };
 
@@ -89,17 +95,62 @@ export const AdminApiKeys = () => {
     }
   };
 
+  const services = [
+    { value: "custom", label: "Custom" },
+    { value: "gemini", label: "Google Gemini" },
+    { value: "openai", label: "OpenAI" },
+    { value: "deepseek", label: "DeepSeek" },
+    { value: "huggingface", label: "Hugging Face" },
+    { value: "stripe", label: "Stripe" },
+  ];
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">API Keys</h2>
-        <Button onClick={handleGenerateKey}>Generate New Key</Button>
+      </div>
+
+      <div className="grid gap-4 p-4 border rounded-lg bg-card">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label htmlFor="keyName" className="text-sm font-medium">
+              Key Name
+            </label>
+            <Input
+              id="keyName"
+              placeholder="Enter key name"
+              value={keyName}
+              onChange={(e) => setKeyName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="serviceType" className="text-sm font-medium">
+              Service Type
+            </label>
+            <select
+              id="serviceType"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={serviceType}
+              onChange={(e) => setServiceType(e.target.value)}
+            >
+              {services.map((service) => (
+                <option key={service.value} value={service.value}>
+                  {service.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <Button onClick={handleGenerateKey} className="w-full md:w-auto">
+          Generate New Key
+        </Button>
       </div>
 
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
+            <TableHead>Service</TableHead>
             <TableHead>Key</TableHead>
             <TableHead>Created</TableHead>
             <TableHead>Status</TableHead>
@@ -110,6 +161,9 @@ export const AdminApiKeys = () => {
           {apiKeys?.map((key) => (
             <TableRow key={key.id}>
               <TableCell>{key.name}</TableCell>
+              <TableCell>
+                <span className="capitalize">{key.service_type || 'custom'}</span>
+              </TableCell>
               <TableCell>
                 <code className="bg-muted px-2 py-1 rounded">
                   {key.key_value.substring(0, 10)}...
