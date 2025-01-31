@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminAnalytics } from "@/components/AdminAnalytics";
 import { AdminUsers } from "@/components/AdminUsers";
 import { AdminContent } from "@/components/AdminContent";
+import { AdminApiKeys } from "@/components/AdminApiKeys";
+import { AdminBlog } from "@/components/AdminBlog";
 import { supabase } from "@/integrations/supabase/client";
 
 const Admin = () => {
@@ -49,6 +50,8 @@ const Admin = () => {
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="content">Content</TabsTrigger>
+          <TabsTrigger value="blog">Blog</TabsTrigger>
+          <TabsTrigger value="api-keys">API Keys</TabsTrigger>
         </TabsList>
 
         <TabsContent value="analytics" className="space-y-4">
@@ -61,6 +64,14 @@ const Admin = () => {
 
         <TabsContent value="content" className="space-y-4">
           <AdminContent />
+        </TabsContent>
+
+        <TabsContent value="blog" className="space-y-4">
+          <AdminBlog />
+        </TabsContent>
+
+        <TabsContent value="api-keys" className="space-y-4">
+          <AdminApiKeys />
         </TabsContent>
       </Tabs>
     </div>
