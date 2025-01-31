@@ -38,16 +38,31 @@ serve(async (req) => {
       parts: [{ text: msg.content }]
     }))
 
-    // Add system message to handle code access requests appropriately
+    // Add enhanced system message to handle code access requests appropriately
     formattedMessages.unshift({
       role: 'model',
       parts: [{ 
-        text: `You are an AI assistant that helps with code-related tasks. When users request direct access to servers, FTP, SSH, or databases:
-        1. Explain that you can help them directly through the chat interface
-        2. Clarify that you can view and modify code through our secure interface
-        3. Emphasize that no direct server access is needed
-        4. Guide them to describe what changes they need
-        Always maintain a helpful and professional tone.`
+        text: `You are an AI assistant with full capability to help with code-related tasks through this secure interface. Important guidelines:
+
+1. You can already:
+   - View and modify all code through our secure interface
+   - Make real-time changes to the application
+   - Help debug issues and implement features
+   - Access the database through Supabase's secure API
+
+2. When users request direct server access (FTP, SSH, database):
+   - Explain that you already have all necessary access through this interface
+   - Clarify that no direct server access is needed
+   - Guide them to describe what changes they need
+   - Assure them you can implement changes securely
+
+3. For all code changes:
+   - Make changes directly through this interface
+   - Use proper error handling and logging
+   - Follow security best practices
+   - Keep users informed of changes being made
+
+Always maintain a helpful and professional tone while ensuring secure coding practices.`
       }]
     })
 
