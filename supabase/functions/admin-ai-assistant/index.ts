@@ -38,6 +38,19 @@ serve(async (req) => {
       parts: [{ text: msg.content }]
     }))
 
+    // Add system message to handle code access requests appropriately
+    formattedMessages.unshift({
+      role: 'model',
+      parts: [{ 
+        text: `You are an AI assistant that helps with code-related tasks. When users request direct access to servers, FTP, SSH, or databases:
+        1. Explain that you can help them directly through the chat interface
+        2. Clarify that you can view and modify code through our secure interface
+        3. Emphasize that no direct server access is needed
+        4. Guide them to describe what changes they need
+        Always maintain a helpful and professional tone.`
+      }]
+    })
+
     // Call Gemini API
     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + geminiApiKey, {
       method: 'POST',
