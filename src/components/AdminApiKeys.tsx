@@ -17,6 +17,7 @@ import { useState } from "react";
 export const AdminApiKeys = () => {
   const { toast } = useToast();
   const [keyName, setKeyName] = useState("");
+  const [keyValue, setKeyValue] = useState("");
   const [serviceType, setServiceType] = useState("custom");
 
   const { data: apiKeys, refetch } = useQuery({
@@ -32,28 +33,25 @@ export const AdminApiKeys = () => {
     }
   });
 
-  const handleGenerateKey = async () => {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: newKey, error } = await supabase
-      .rpc('generate_api_key');
-
-    if (error) {
+  const handleSaveKey = async () => {
+    if (!keyValue.trim()) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to generate API key.",
+        description: "Please enter an API key.",
       });
       return;
     }
+
+    const { data: user } = await supabase.auth.getUser();
+    if (!user) return;
 
     const { error: insertError } = await supabase
       .from('api_keys')
       .insert({
         user_id: user.user.id,
         name: keyName || `${serviceType.toUpperCase()} API Key ${format(new Date(), 'yyyy-MM-dd HH:mm')}`,
-        key_value: newKey,
+        key_value: keyValue,
         service_type: serviceType,
       });
 
@@ -68,9 +66,10 @@ export const AdminApiKeys = () => {
 
     toast({
       title: "Success",
-      description: "New API key generated.",
+      description: "API key saved successfully.",
     });
     setKeyName("");
+    setKeyValue("");
     refetch();
   };
 
@@ -111,7 +110,7 @@ export const AdminApiKeys = () => {
       </div>
 
       <div className="grid gap-4 p-4 border rounded-lg bg-card">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           <div className="space-y-2">
             <label htmlFor="keyName" className="text-sm font-medium">
               Key Name
@@ -121,6 +120,18 @@ export const AdminApiKeys = () => {
               placeholder="Enter key name"
               value={keyName}
               onChange={(e) => setKeyName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="keyValue" className="text-sm font-medium">
+              API Key
+            </label>
+            <Input
+              id="keyValue"
+              type="password"
+              placeholder="Enter API key"
+              value={keyValue}
+              onChange={(e) => setKeyValue(e.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -141,8 +152,8 @@ export const AdminApiKeys = () => {
             </select>
           </div>
         </div>
-        <Button onClick={handleGenerateKey} className="w-full md:w-auto">
-          Generate New Key
+        <Button onClick={handleSaveKey} className="w-full md:w-auto">
+          Save API Key
         </Button>
       </div>
 
