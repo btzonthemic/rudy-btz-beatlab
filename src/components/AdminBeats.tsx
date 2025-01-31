@@ -49,11 +49,13 @@ const formSchema = z.object({
   artwork_file: z.custom<File>((val) => val instanceof File, "Artwork file is required").optional(),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 export const AdminBeats = () => {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
@@ -165,7 +167,7 @@ export const AdminBeats = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = (values: FormValues) => {
     createBeat.mutate(values);
   };
 
@@ -291,7 +293,7 @@ export const AdminBeats = () => {
                 <FormField
                   control={form.control}
                   name="audio_file"
-                  render={({ field: { onChange, ...field } }) => (
+                  render={({ field: { value, onChange, ...field } }) => (
                     <FormItem>
                       <FormLabel>Audio File</FormLabel>
                       <FormControl>
@@ -313,7 +315,7 @@ export const AdminBeats = () => {
                 <FormField
                   control={form.control}
                   name="artwork_file"
-                  render={({ field: { onChange, ...field } }) => (
+                  render={({ field: { value, onChange, ...field } }) => (
                     <FormItem>
                       <FormLabel>Artwork</FormLabel>
                       <FormControl>
