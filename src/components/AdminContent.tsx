@@ -27,10 +27,10 @@ export const AdminContent = () => {
     }
   });
 
-  const handleContentStatus = async (contentId: string, isPublished: boolean) => {
+  const handleContentStatus = async (contentId: string, isActive: boolean) => {
     const { error } = await supabase
       .from('content')
-      .update({ published: isPublished })
+      .update({ type: isActive ? 'active' : 'inactive' })
       .eq('id', contentId);
 
     if (error) {
@@ -71,9 +71,9 @@ export const AdminContent = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleContentStatus(item.id, !item.published)}
+                  onClick={() => handleContentStatus(item.id, item.type !== 'active')}
                 >
-                  {item.published ? 'Unpublish' : 'Publish'}
+                  {item.type === 'active' ? 'Deactivate' : 'Activate'}
                 </Button>
               </TableCell>
             </TableRow>
