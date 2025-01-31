@@ -113,7 +113,7 @@ export function BeatUploadForm({ genres, onSubmit, onCancel }: BeatUploadFormPro
           <FormField
             control={form.control}
             name="bpm"
-            render={({ field }) => (
+            render={({ field: { value, onChange, ...field } }) => (
               <FormItem>
                 <FormLabel>BPM</FormLabel>
                 <FormControl>
@@ -121,7 +121,8 @@ export function BeatUploadForm({ genres, onSubmit, onCancel }: BeatUploadFormPro
                     type="number"
                     placeholder="Enter BPM"
                     {...field}
-                    onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                    value={value || ""}
+                    onChange={(e) => onChange(e.target.valueAsNumber)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -147,7 +148,7 @@ export function BeatUploadForm({ genres, onSubmit, onCancel }: BeatUploadFormPro
         <FormField
           control={form.control}
           name="price"
-          render={({ field }) => (
+          render={({ field: { value, onChange, ...field } }) => (
             <FormItem>
               <FormLabel>Price</FormLabel>
               <FormControl>
@@ -157,7 +158,8 @@ export function BeatUploadForm({ genres, onSubmit, onCancel }: BeatUploadFormPro
                   min="0"
                   placeholder="Enter price"
                   {...field}
-                  onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                  value={value || ""}
+                  onChange={(e) => onChange(e.target.valueAsNumber)}
                 />
               </FormControl>
               <FormMessage />
