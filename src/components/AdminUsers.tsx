@@ -21,12 +21,12 @@ export const AdminUsers = () => {
   const { toast } = useToast();
 
   const { data: users, refetch } = useQuery({
-    queryKey: ['users'],
+    queryKey: ['users', searchTerm],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*, users!inner(*)')
-        .ilike('users.email', `%${searchTerm}%`);
+        .select('*')
+        .ilike('username', `%${searchTerm}%`);
       
       if (error) throw error;
       return data;
@@ -68,16 +68,14 @@ export const AdminUsers = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Email</TableHead>
             <TableHead>Username</TableHead>
             <TableHead>Role</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users?.map((user: any) => (
+          {users?.map((user) => (
             <TableRow key={user.id}>
-              <TableCell>{user.users.email}</TableCell>
               <TableCell>{user.username}</TableCell>
               <TableCell>{user.role}</TableCell>
               <TableCell>
