@@ -42,9 +42,13 @@ const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   genre_id: z.string().optional(),
-  bpm: z.string().transform((val) => (val ? parseInt(val, 10) : undefined)).optional(),
+  bpm: z.string()
+    .transform((val) => (val ? parseInt(val, 10) : undefined))
+    .optional(),
   key: z.string().optional(),
-  price: z.string().transform((val) => parseFloat(val)).refine((val) => val >= 0, "Price must be positive"),
+  price: z.string()
+    .transform((val) => parseFloat(val))
+    .refine((val) => !isNaN(val) && val >= 0, "Price must be a positive number"),
   audio_file: z.custom<File>((val) => val instanceof File, "Audio file is required"),
   artwork_file: z.custom<File>((val) => val instanceof File, "Artwork file is required").optional(),
 });
