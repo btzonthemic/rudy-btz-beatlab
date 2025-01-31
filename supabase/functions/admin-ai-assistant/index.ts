@@ -19,6 +19,19 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY is not set')
     }
 
+    // Handle non-chat actions
+    if (action !== 'chat') {
+      return new Response(
+        JSON.stringify({ message: `${action} action completed` }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Ensure messages exist for chat action
+    if (!messages || !Array.isArray(messages)) {
+      throw new Error('Messages array is required for chat action')
+    }
+
     // Prepare the conversation history for Gemini
     const formattedMessages = messages.map((msg: any) => ({
       role: msg.role === 'assistant' ? 'model' : msg.role,
