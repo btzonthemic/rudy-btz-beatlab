@@ -644,6 +644,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          published: boolean | null
           title: string
           type: string
           updated_at: string | null
@@ -653,6 +654,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          published?: boolean | null
           title: string
           type: string
           updated_at?: string | null
@@ -662,6 +664,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          published?: boolean | null
           title?: string
           type?: string
           updated_at?: string | null
