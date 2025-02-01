@@ -642,6 +642,33 @@ export type Database = {
           },
         ]
       }
+      chats: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          receiver_id: string | null
+          sender_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          receiver_id?: string | null
+          sender_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          receiver_id?: string | null
+          sender_id?: string | null
+        }
+        Relationships: []
+      }
       content: {
         Row: {
           created_at: string | null
@@ -1330,6 +1357,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          fcm_token: string | null
           id: string
           role: Database["public"]["Enums"]["user_role"] | null
           updated_at: string
@@ -1338,6 +1366,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          fcm_token?: string | null
           id: string
           role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string
@@ -1346,6 +1375,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          fcm_token?: string | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string

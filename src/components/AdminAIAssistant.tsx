@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Send, Image, Code, Bug, FileUp, Search } from "lucide-react";
+import { Loader2, Send, Image, Code, Bug, FileUp, Search, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const AdminAIAssistant = () => {
@@ -18,6 +18,26 @@ export const AdminAIAssistant = () => {
   ]);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+
+  // Subscribe to chat notifications
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-chat')
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'chats' },
+        (payload) => {
+          toast({
+            title: "New Message",
+            description: "You have received a new message",
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +104,27 @@ export const AdminAIAssistant = () => {
     }
   };
 
+  // Save FCM token when available
+  useEffect(() => {
+    const saveFCMToken = async () => {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase
+              .from('profiles')
+              .update({ fcm_token: 'web-notification-enabled' })
+              .eq('id', user.id);
+          }
+        } catch (error) {
+          console.error('Error saving notification status:', error);
+        }
+      }
+    };
+
+    saveFCMToken();
+  }, []);
+
   return (
     <div className="space-y-4">
       <Card>
@@ -128,6 +169,14 @@ export const AdminAIAssistant = () => {
             >
               <Search className="w-4 h-4 mr-2" />
               Search Web
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => handleAction("chat")}
+              disabled={isProcessing}
+            >
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Chat
             </Button>
           </div>
 
