@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,17 +13,48 @@ serve(async (req) => {
   }
 
   try {
-    const { action, messages } = await req.json()
+    const { action, messages, context } = await req.json()
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
     if (!geminiApiKey) {
       throw new Error('GEMINI_API_KEY is not set')
     }
 
+    // Initialize Supabase client with service role key for admin operations
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!)
+
     // Handle non-chat actions
     if (action !== 'chat') {
+      let response = ''
+      
+      switch(action) {
+        case 'database':
+          const { data: tables } = await supabase
+            .from('information_schema.tables')
+            .select('table_name')
+            .eq('table_schema', 'public')
+          response = `Database tables: ${tables?.map(t => t.table_name).join(', ')}`
+          break;
+          
+        case 'storage':
+          const { data: buckets } = await supabase
+            .storage
+            .listBuckets()
+          response = `Storage buckets: ${buckets?.map(b => b.name).join(', ')}`
+          break;
+          
+        case 'functions':
+          response = 'Edge Functions management initiated'
+          break;
+          
+        default:
+          response = `${action} action completed`
+      }
+
       return new Response(
-        JSON.stringify({ message: `${action} action completed` }),
+        JSON.stringify({ message: response }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -38,31 +70,33 @@ serve(async (req) => {
       parts: [{ text: msg.content }]
     }))
 
-    // Add enhanced system message to handle code access requests appropriately
+    // Add enhanced system message for Supabase management
     formattedMessages.unshift({
       role: 'model',
       parts: [{ 
-        text: `You are an AI assistant with full capability to help with code-related tasks through this secure interface. Important guidelines:
+        text: `You are an AI assistant with full capability to help manage Supabase backend through this secure interface. You can:
 
-1. You can already:
-   - View and modify all code through our secure interface
-   - Make real-time changes to the application
-   - Help debug issues and implement features
-   - Access the database through Supabase's secure API
+1. Database Management:
+   - Create, modify, and delete tables
+   - Manage data and relationships
+   - Handle migrations and backups
 
-2. When users request direct server access (FTP, SSH, database):
-   - Explain that you already have all necessary access through this interface
-   - Clarify that no direct server access is needed
-   - Guide them to describe what changes they need
-   - Assure them you can implement changes securely
+2. Storage Management:
+   - Create and configure storage buckets
+   - Manage file uploads and permissions
+   - Handle storage policies
 
-3. For all code changes:
-   - Make changes directly through this interface
-   - Use proper error handling and logging
-   - Follow security best practices
-   - Keep users informed of changes being made
+3. Function Management:
+   - Deploy and update Edge Functions
+   - Monitor function performance
+   - Handle function logs
 
-Always maintain a helpful and professional tone while ensuring secure coding practices.`
+4. Security:
+   - Manage Row Level Security (RLS) policies
+   - Handle API keys and authentication
+   - Configure access controls
+
+Always maintain security best practices and provide clear explanations of actions taken.`
       }]
     })
 
@@ -111,7 +145,10 @@ Always maintain a helpful and professional tone while ensuring secure coding pra
     const message = data.candidates[0].content.parts[0].text
 
     return new Response(
-      JSON.stringify({ message }),
+      JSON.stringify({ 
+        message,
+        dbCommands: data.candidates[0].content.parts[0].dbCommands || [] 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 

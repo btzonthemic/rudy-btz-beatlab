@@ -5,7 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Send, Image, Code, Bug, FileUp, Search, MessageSquare } from "lucide-react";
+import { 
+  Loader2, Send, Image, Code, Bug, FileUp, Search, 
+  MessageSquare, Database, Key, Settings, Table 
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const AdminAIAssistant = () => {
@@ -13,22 +16,22 @@ export const AdminAIAssistant = () => {
   const [messages, setMessages] = useState<Array<{role: string, content: string}>>([
     {
       role: "assistant",
-      content: "Hello! I'm your AI admin assistant powered by Google's Gemini. I can help you with various tasks like fixing bugs, generating images, creating new features, and more. How can I assist you today?"
+      content: "Hello! I'm your AI admin assistant. I can help you manage your Supabase backend, including database operations, storage management, and function deployment. How can I assist you today?"
     }
   ]);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  // Subscribe to chat notifications
+  // Subscribe to database changes
   useEffect(() => {
     const channel = supabase
-      .channel('admin-chat')
+      .channel('db-changes')
       .on('postgres_changes', 
-        { event: 'INSERT', schema: 'public', table: 'chats' },
+        { event: '*', schema: 'public' },
         (payload) => {
           toast({
-            title: "New Message",
-            description: "You have received a new message",
+            title: "Database Change",
+            description: `Table ${payload.table} was modified`,
           });
         }
       )
@@ -52,7 +55,12 @@ export const AdminAIAssistant = () => {
       const response = await supabase.functions.invoke('admin-ai-assistant', {
         body: { 
           messages: [...messages, userMessage],
-          action: "chat"
+          action: "chat",
+          context: {
+            database: true,
+            storage: true,
+            functions: true
+          }
         }
       });
 
@@ -63,6 +71,13 @@ export const AdminAIAssistant = () => {
         content: response.data.message 
       };
       setMessages(prev => [...prev, assistantMessage]);
+
+      // Execute any database commands if present in the response
+      if (response.data.dbCommands) {
+        for (const command of response.data.dbCommands) {
+          await supabase.rpc('execute_admin_command', { command });
+        }
+      }
 
     } catch (error) {
       console.error('Error:', error);
@@ -84,7 +99,12 @@ export const AdminAIAssistant = () => {
       const response = await supabase.functions.invoke('admin-ai-assistant', {
         body: { 
           action,
-          messages: action === "chat" ? messages : undefined
+          messages: action === "chat" ? messages : undefined,
+          context: {
+            database: true,
+            storage: true,
+            functions: true
+          }
         }
       });
 
@@ -107,79 +127,58 @@ export const AdminAIAssistant = () => {
     }
   };
 
-  // Save FCM token when available
-  useEffect(() => {
-    const saveFCMToken = async () => {
-      if ('Notification' in window && Notification.permission === 'granted') {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await supabase
-              .from('profiles')
-              .update({ fcm_token: 'web-notification-enabled' })
-              .eq('id', user.id);
-          }
-        } catch (error) {
-          console.error('Error saving notification status:', error);
-        }
-      }
-    };
-
-    saveFCMToken();
-  }, []);
-
   return (
     <div className="space-y-4">
       <Card>
         <CardContent className="p-6">
-          <div className="flex gap-2 mb-4">
+          <div className="flex gap-2 mb-4 flex-wrap">
             <Button 
               variant="outline" 
-              onClick={() => handleAction("fix-bugs")}
+              onClick={() => handleAction("database")}
               disabled={isProcessing}
             >
-              <Bug className="w-4 h-4 mr-2" />
-              Fix Bugs
+              <Database className="w-4 h-4 mr-2" />
+              Database
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => handleAction("generate-image")}
-              disabled={isProcessing}
-            >
-              <Image className="w-4 h-4 mr-2" />
-              Generate Image
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleAction("create-feature")}
-              disabled={isProcessing}
-            >
-              <Code className="w-4 h-4 mr-2" />
-              Create Feature
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleAction("upload")}
+              onClick={() => handleAction("storage")}
               disabled={isProcessing}
             >
               <FileUp className="w-4 h-4 mr-2" />
-              Upload
+              Storage
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => handleAction("search")}
+              onClick={() => handleAction("functions")}
               disabled={isProcessing}
             >
-              <Search className="w-4 h-4 mr-2" />
-              Search Web
+              <Code className="w-4 h-4 mr-2" />
+              Functions
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => handleAction("chat")}
+              onClick={() => handleAction("tables")}
               disabled={isProcessing}
             >
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Chat
+              <Table className="w-4 h-4 mr-2" />
+              Tables
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => handleAction("api-keys")}
+              disabled={isProcessing}
+            >
+              <Key className="w-4 h-4 mr-2" />
+              API Keys
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => handleAction("settings")}
+              disabled={isProcessing}
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
             </Button>
           </div>
 
@@ -207,7 +206,7 @@ export const AdminAIAssistant = () => {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message here..."
+              placeholder="Ask me to manage your Supabase backend..."
               disabled={isProcessing}
               className="flex-1"
             />
