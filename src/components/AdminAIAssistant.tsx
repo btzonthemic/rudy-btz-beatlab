@@ -75,7 +75,18 @@ export const AdminAIAssistant = () => {
       // Execute any database commands if present in the response
       if (response.data.dbCommands) {
         for (const command of response.data.dbCommands) {
-          await supabase.rpc('execute_admin_command', { command });
+          // Use appropriate Supabase functions based on command type
+          if (command.type === 'create_table') {
+            await supabase.rpc('create_table', { 
+              table_name: command.table_name,
+              table_schema: command.schema
+            });
+          } else if (command.type === 'analytics') {
+            await supabase.rpc('get_analytics_summary');
+          } else if (command.type === 'generate_key') {
+            await supabase.rpc('generate_api_key');
+          }
+          // Add more command types as needed
         }
       }
 
