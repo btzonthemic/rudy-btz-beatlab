@@ -82,7 +82,10 @@ export const AdminAIAssistant = () => {
     try {
       setIsProcessing(true);
       const response = await supabase.functions.invoke('admin-ai-assistant', {
-        body: { action }
+        body: { 
+          action,
+          messages: action === "chat" ? messages : undefined
+        }
       });
 
       if (response.error) throw response.error;
