@@ -1,18 +1,12 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Loader2, Send, Image, Code, Bug, FileUp, Search, 
-  MessageSquare, Database, Key, Settings, Table 
-} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { AIChat } from "./admin/ai/AIChat";
+import { AIActions } from "./admin/ai/AIActions";
+import { AIMessages } from "./admin/ai/AIMessages";
 
 export const AdminAIAssistant = () => {
-  const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Array<{role: string, content: string}>>([
     {
       role: "assistant",
@@ -42,15 +36,13 @@ export const AdminAIAssistant = () => {
     };
   }, [toast]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isProcessing) return;
+  const handleSubmit = async (input: string) => {
+    if (isProcessing) return;
 
     try {
       setIsProcessing(true);
       const userMessage = { role: "user", content: input };
       setMessages(prev => [...prev, userMessage]);
-      setInput("");
 
       const response = await supabase.functions.invoke('admin-ai-assistant', {
         body: { 
@@ -142,90 +134,9 @@ export const AdminAIAssistant = () => {
     <div className="space-y-4">
       <Card>
         <CardContent className="p-6">
-          <div className="flex gap-2 mb-4 flex-wrap">
-            <Button 
-              variant="outline" 
-              onClick={() => handleAction("database")}
-              disabled={isProcessing}
-            >
-              <Database className="w-4 h-4 mr-2" />
-              Database
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleAction("storage")}
-              disabled={isProcessing}
-            >
-              <FileUp className="w-4 h-4 mr-2" />
-              Storage
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleAction("functions")}
-              disabled={isProcessing}
-            >
-              <Code className="w-4 h-4 mr-2" />
-              Functions
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleAction("tables")}
-              disabled={isProcessing}
-            >
-              <Table className="w-4 h-4 mr-2" />
-              Tables
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleAction("api-keys")}
-              disabled={isProcessing}
-            >
-              <Key className="w-4 h-4 mr-2" />
-              API Keys
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleAction("settings")}
-              disabled={isProcessing}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </Button>
-          </div>
-
-          <ScrollArea className="h-[400px] mb-4 p-4 border rounded-lg">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`mb-4 p-4 rounded-lg ${
-                  message.role === "assistant"
-                    ? "bg-secondary"
-                    : "bg-primary text-primary-foreground"
-                }`}
-              >
-                {message.content}
-              </div>
-            ))}
-            {isProcessing && (
-              <div className="flex items-center justify-center p-4">
-                <Loader2 className="w-6 h-6 animate-spin" />
-              </div>
-            )}
-          </ScrollArea>
-
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask me to manage your Supabase backend..."
-              disabled={isProcessing}
-              className="flex-1"
-            />
-            <Button type="submit" disabled={isProcessing}>
-              <Send className="w-4 h-4 mr-2" />
-              Send
-            </Button>
-          </form>
+          <AIActions isProcessing={isProcessing} onAction={handleAction} />
+          <AIMessages messages={messages} isProcessing={isProcessing} />
+          <AIChat isProcessing={isProcessing} onSubmit={handleSubmit} />
         </CardContent>
       </Card>
     </div>
