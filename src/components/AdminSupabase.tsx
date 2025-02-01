@@ -78,12 +78,16 @@ export const AdminSupabase = () => {
 
   const handleSaveApiKey = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
+
       const { error } = await supabase
         .from('api_keys')
         .insert({
           name: apiKeyName,
           key_value: apiKeyValue,
-          service_type: 'custom'
+          service_type: 'custom',
+          user_id: user.id
         });
 
       if (error) throw error;
