@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Database, Server, Users, FileText, Key } from "lucide-react";
+import { Database, Server, Users, FileText, Key, Settings } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,8 +25,11 @@ import { Textarea } from "@/components/ui/textarea";
 export const AdminSupabase = () => {
   const { toast } = useToast();
   const [isTableDialogOpen, setIsTableDialogOpen] = useState(false);
+  const [isApiSettingsDialogOpen, setIsApiSettingsDialogOpen] = useState(false);
   const [tableName, setTableName] = useState("");
   const [tableSchema, setTableSchema] = useState("");
+  const [apiKeyName, setApiKeyName] = useState("");
+  const [apiKeyValue, setApiKeyValue] = useState("");
 
   const { data: databaseStats } = useQuery({
     queryKey: ['supabase-stats'],
@@ -68,6 +71,35 @@ export const AdminSupabase = () => {
         variant: "destructive",
         title: "Error",
         description: "Failed to log table creation request",
+      });
+      console.error("Error:", error);
+    }
+  };
+
+  const handleSaveApiKey = async () => {
+    try {
+      const { error } = await supabase
+        .from('api_keys')
+        .insert({
+          name: apiKeyName,
+          key_value: apiKeyValue,
+          service_type: 'custom'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "API key saved successfully.",
+      });
+      setIsApiSettingsDialogOpen(false);
+      setApiKeyName("");
+      setApiKeyValue("");
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save API key",
       });
       console.error("Error:", error);
     }
@@ -199,6 +231,43 @@ export const AdminSupabase = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
+            <Dialog open={isApiSettingsDialogOpen} onOpenChange={setIsApiSettingsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  Add API Key
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New API Key</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="apiKeyName">Key Name</Label>
+                    <Input
+                      id="apiKeyName"
+                      value={apiKeyName}
+                      onChange={(e) => setApiKeyName(e.target.value)}
+                      placeholder="Enter key name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="apiKeyValue">API Key</Label>
+                    <Input
+                      id="apiKeyValue"
+                      type="password"
+                      value={apiKeyValue}
+                      onChange={(e) => setApiKeyValue(e.target.value)}
+                      placeholder="Enter API key"
+                    />
+                  </div>
+                  <Button onClick={handleSaveApiKey} className="w-full">
+                    Save API Key
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
             <Button 
               variant="outline" 
               className="w-full"
