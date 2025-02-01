@@ -8,6 +8,7 @@ import { AdminContent } from "@/components/AdminContent";
 import { AdminApiKeys } from "@/components/AdminApiKeys";
 import { AdminBlog } from "@/components/AdminBlog";
 import { AdminAIAssistant } from "@/components/AdminAIAssistant";
+import { AdminSupabase } from "@/components/AdminSupabase";
 import { supabase } from "@/integrations/supabase/client";
 
 const Admin = () => {
@@ -54,6 +55,7 @@ const Admin = () => {
           <TabsTrigger value="blog">Blog</TabsTrigger>
           <TabsTrigger value="api-keys">API Keys</TabsTrigger>
           <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
+          <TabsTrigger value="supabase">Supabase</TabsTrigger>
         </TabsList>
 
         <TabsContent value="analytics" className="space-y-4">
@@ -78,6 +80,10 @@ const Admin = () => {
 
         <TabsContent value="ai-assistant" className="space-y-4">
           <AdminAIAssistant />
+        </TabsContent>
+
+        <TabsContent value="supabase" className="space-y-4">
+          <AdminSupabase />
         </TabsContent>
       </Tabs>
     </div>
