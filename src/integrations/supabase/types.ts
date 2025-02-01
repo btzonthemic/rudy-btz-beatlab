@@ -1615,6 +1615,13 @@ export type Database = {
         }
         Returns: string
       }
+      create_table: {
+        Args: {
+          table_name: string
+          table_schema: string
+        }
+        Returns: undefined
+      }
       generate_api_key: {
         Args: Record<PropertyKey, never>
         Returns: string

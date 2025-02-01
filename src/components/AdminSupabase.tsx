@@ -47,25 +47,29 @@ export const AdminSupabase = () => {
 
   const handleCreateTable = async () => {
     try {
-      const { error } = await supabase.rpc('create_table', {
-        table_name: tableName,
-        table_schema: tableSchema
-      });
+      const { error } = await supabase
+        .from('admin_audit_logs')
+        .insert({
+          admin_id: (await supabase.auth.getUser()).data.user?.id,
+          action: 'CREATE_TABLE',
+          entity_type: 'table',
+          changes: { table_name: tableName, schema: tableSchema }
+        });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Table created successfully",
+        description: "Table creation request logged. Please use SQL Editor to create the table.",
       });
       setIsTableDialogOpen(false);
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to create table",
+        description: "Failed to log table creation request",
       });
-      console.error("Error creating table:", error);
+      console.error("Error:", error);
     }
   };
 
