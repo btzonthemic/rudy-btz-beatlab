@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -10,9 +11,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Database, Server, Users, FileText, Key } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export const AdminSupabase = () => {
   const { toast } = useToast();
+  const [isTableDialogOpen, setIsTableDialogOpen] = useState(false);
+  const [tableName, setTableName] = useState("");
+  const [tableSchema, setTableSchema] = useState("");
 
   const { data: databaseStats } = useQuery({
     queryKey: ['supabase-stats'],
@@ -30,6 +44,30 @@ export const AdminSupabase = () => {
       };
     }
   });
+
+  const handleCreateTable = async () => {
+    try {
+      const { error } = await supabase.rpc('create_table', {
+        table_name: tableName,
+        table_schema: tableSchema
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Table created successfully",
+      });
+      setIsTableDialogOpen(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create table",
+      });
+      console.error("Error creating table:", error);
+    }
+  };
 
   const handleOpenSupabase = (path: string) => {
     window.open(`https://supabase.com/dashboard/project/gkndpuehqntqsjwvtqlt${path}`, '_blank');
@@ -88,6 +126,43 @@ export const AdminSupabase = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
+            <Dialog open={isTableDialogOpen} onOpenChange={setIsTableDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  Create New Table
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Table</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="tableName">Table Name</Label>
+                    <Input
+                      id="tableName"
+                      value={tableName}
+                      onChange={(e) => setTableName(e.target.value)}
+                      placeholder="Enter table name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="tableSchema">SQL Schema</Label>
+                    <Textarea
+                      id="tableSchema"
+                      value={tableSchema}
+                      onChange={(e) => setTableSchema(e.target.value)}
+                      placeholder="Enter SQL schema"
+                      className="h-32"
+                    />
+                  </div>
+                  <Button onClick={handleCreateTable} className="w-full">
+                    Create Table
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+            
             <Button 
               variant="outline" 
               className="w-full"
